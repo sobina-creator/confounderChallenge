@@ -5,7 +5,7 @@ format:
   html: default
 bibliography: references.bib
 execute:
-  echo: true
+  echo: false
   eval: true
 ---
 
@@ -19,15 +19,6 @@ Your mission: **Recover the lost figures** by reading the narrative carefully an
 - **Figure 1**: Post-surgical outcomes by patient (observational data)
 - **Figure 2**: Post-surgical outcomes for randomized patients  
 - **Figure 3**: Post-surgical outcomes by patient severity (stratification)
-
-Use the text descriptions, statistical results, and your understanding of visualization best practices to recreate these figures. Your figures should be professional, colorblind-friendly, and tell the story clearly.
-
-**Grading:** Completing the three figures correctly will earn you 85% of the grade. To earn the final 15% (for a total of 100%), you must make it feel like a complete, professional report rather than a challenge assignment
-::::
-
-:::: {.callout-warning}
-## ⚠️ AI Partnership Required
-Use Cursor AI for speed, but ensure you understand and can explain your visualizations in your own words. The goal is to create figures that match the narrative and statistical insights described in the text.
 ::::
 
 ## The Paradox: Who *Really* Is the Better Surgeon?
@@ -48,7 +39,7 @@ Counterintuitively, the surgeon who doesn't "look the part" may actually be the 
 
 ```{python}
 #| label: simulate-data
-#| echo: true
+#| echo: false
 #| message: false
 #| warning: false
 #| include: false
@@ -103,7 +94,7 @@ patients_df.head()
 
 ```{python}
 #| label: load-data-python
-#| echo: true
+#| echo: false
 
 import pandas as pd
 
@@ -119,7 +110,7 @@ patients_df.head()
 
 ```{r}
 #| label: load-data-r
-#| echo: true
+#| echo: false
 
 # Load the observational data
 patients_df <- read.csv('patients_data.csv')
@@ -151,7 +142,7 @@ Let's use data to figure out which surgeon performs better. @fig-plot-outcomes s
 ```{python}
 #| label: fig-plot-outcomes
 #| fig-cap: "Post-Surgical Symptom Score (lower is better) - Observed Data"
-#| echo: true
+#| echo: false
 
 import matplotlib.pyplot as plt
 
@@ -222,7 +213,7 @@ plt.show()
 ```{r}
 #| label: fig-plot-outcomes-r
 #| fig-cap: "Post-Surgical Symptom Score (lower is better) - Observed Data"
-#| echo: true
+#| echo: false
 
 # TODO: Recover Figure 1 - Post-surgical outcomes by patient
 # Load data (already loaded above)
@@ -238,9 +229,6 @@ plt.show()
 
 ```
 :::
-
-
-
 
 
 ## The Hidden Confounder: Patient Severity Explains It All
@@ -286,7 +274,7 @@ Since we cannot rerun history with randomization, we run an experiment to collec
 
 ```{python}
 #| label: simulate-data-randomized
-#| echo: true
+#| echo: false
 #| message: false
 #| warning: false
 #| include: false
@@ -337,7 +325,7 @@ patients_randomized_df.head()
 
 ```{python}
 #| label: load-data-randomized-python
-#| echo: true
+#| echo: false
 
 import pandas as pd
 
@@ -353,7 +341,7 @@ patients_randomized_df.head()
 
 ```{r}
 #| label: load-data-randomized-r
-#| echo: true
+#| echo: false
 
 # Load the randomized data
 patients_randomized_df <- read.csv('patients_data_randomized.csv')
@@ -381,7 +369,7 @@ head(patients_randomized_df)
 ```{python}
 #| label: fig-plot-outcomes-randomized
 #| fig-cap: "Post-Surgical Symptom Score (lower is better) for randomized patients."
-#| echo: true
+#| echo: false
 
 import matplotlib.pyplot as plt
 
@@ -440,7 +428,7 @@ plt.show()
 ```{r}
 #| label: fig-plot-outcomes-randomized-r
 #| fig-cap: "Post-Surgical Symptom Score (lower is better) for randomized patients."
-#| echo: true
+#| echo: false
 
 # Install ggplot2 if not available
 if (!require("ggplot2", quietly = TRUE)) {
@@ -521,7 +509,7 @@ The key to handling a common cause confounder is to stratify by the common cause
 ```{python}
 #| label: fig-plot-outcomes-severity
 #| fig-cap: "Post-Surgical Symptom Score (lower is better) by Patient and Severity"
-#| echo: true
+#| echo: false
 
 import matplotlib.pyplot as plt
 
@@ -588,7 +576,7 @@ plt.show()
 ```{r}
 #| label: fig-plot-outcomes-severity-r
 #| fig-cap: "Post-Surgical Symptom Score (lower is better) by Patient and Severity"
-#| echo: true
+#| echo: false
 
 # Install ggplot2 if not available
 if (!require("ggplot2", quietly = TRUE)) {
@@ -637,58 +625,8 @@ p <- ggplot(patients_df, aes(x = severity, y = post_surgical_score, color = doct
 
 print(p)
 ```
+:::
 
 Looking at @fig-plot-outcomes-severity, the value of stratifying by severity is visually most obvious with initial patient severity scores between -1 and 1 (highlighted in the overlay). We chose this region because it shows substantial overlap between the two surgeons—both surgeons have considerable data within this range, making it an ideal region for comparing their performance. Outside of this range, there is less data available for making direct comparisons: Doc Duck sees more of the higher-severity patients (severity > 1), while Doc Dreamy sees more of the lower-severity patients (severity < -1).
 
 Within the highlighted region, Doc Dreamy's blue circles tend to be higher (worse) than Doc Duck's red triangles for these patients. It is also obvious that Doc Duck is seeing the more severe patients overall, as his red triangles are generally to the right of Doc Dreamy's blue circles on the x-axis. This is exactly what we would expect if patient severity were a common cause of surgeon choice and surgical outcomes. Despite the aggregate statistics pointing to Doc Dreamy having lower (better) post-surgical symptom scores on average, our visual analysis of this overlapping region leads us to conclude that Doc Duck is actually the better surgeon—a conclusion that would be obscured if we only looked at the means without stratifying by severity.
-
-## How to Solve the Confounder Challenge
-
-Here's the problem with graphs and statistics in general: the numbers can easily mislead you. Or rather, you can be misled *by* the numbers when you don't understand what they're really telling you.
-
-When you just look at the raw data and ask who had better outcomes, Doc Dreamy wins. Lower scores look great on paper. But here's where it gets important: that association doesn't mean what you think it means. Correlation is not causation, and we all know that, but we forget it every single time because our brains are wired to see patterns and assign causes.
-
-The real villain here is patient severity. It operates like a puppeteer behind the curtain, making Doc Dreamy look good by sending him easier cases while sending Doc Duck the harder ones. When you don't randomize, you can't tell the difference between "Doc Dreamy is a better surgeon" and "Doc Dreamy got lucky with his patient assignment."  On any graph or in any headline, look for the common-cause-confounder villian that is unaccounted for.
-
-Randomization is an excellent defense against this kind of confounding. Flip a coin, assign patients randomly, and suddenly the puppeteer loses control. Now you can actually see who the better surgeon is. And the surprise is that it's the one who doesn't look the part. The data wasn't lying; it was just answering a different question than you thought you were asking.
-
-If you can't randomize, and that's most of the time, you stratify. Look within groups of similar patient severity. Compare apples to apples, not apples to oranges. It's more work, and it's less satisfying than a clean randomized trial, but it's better than being fooled by confounding.
-
-The take-home lesson: The world is messy, and the numbers will mislead you if you let them. But if you understand the structure of the problem, if you draw the DAG and think about what causes what, you can defend yourself against being fooled. Randomization when you can, stratification when you can't. The tools are simple. The hard part is remembering to use them.
-
-## Professional Presentation Guidelines
-
-- **Clear narrative:** Your figures should tell the story described in the text
-- **Consistent styling:** All three figures should use the same color scheme and styling approach
-- **Colorblind-friendly:** Use the specified colors (#4E79A7 for Doc Dreamy, #E15759 for Doc Duck)
-- **Professional quality:** Clear labels, appropriate fonts, grid lines, legends
-- **Match the narrative:** Your figures should illustrate the points made in the text about confounding, randomization, and stratification
-
-## Submission Checklist ✅
-
-**For 85% (Base Grade):**
-
-- [ ] Fork the `confounderChallenge` repository
-- [ ] Clone locally and open in Cursor
-- [ ] Recover all three figures (Tasks 1-3)
-- [ ] Ensure figures match the narrative descriptions
-- [ ] Render to HTML (`quarto render` or Render button)
-- [ ] Verify all figures render correctly
-- [ ] Push HTML to your repo and enable GitHub Pages
-- [ ] Share your site: `https://[your-username].github.io/confounderChallenge/`
-
-**For Final 15% (Bonus - 100% Total):**
-
-- [ ] Remove all challenge-related comments from code (no "TODO", "Challenge Task", "Recover Figure")
-- [ ] Transform document title/subtitle to "Using Randomization & Stratification to Overcome A Common Cause Confounder"
-- [ ] Remove challenge framing sections (challenge callout, submission checklist, tips)
-- [ ] Polish the document to read like a complete, professional report
-- [ ] Ensure the narrative flows naturally without challenge references
-
-## Tips
-
-- Read the narrative carefully—it contains hints about what each figure should show
-- Use the statistical results mentioned in the text to verify your figures are correct
-- Keep styling consistent across all three figures
-- Test with both R and Python code chunks if you want to show versatility
-- Set random seeds if you're doing any additional analysis for reproducibility
