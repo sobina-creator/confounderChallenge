@@ -153,17 +153,68 @@ Let's use data to figure out which surgeon performs better. @fig-plot-outcomes s
 #| fig-cap: "Post-Surgical Symptom Score (lower is better) - Observed Data"
 #| echo: true
 
-# TODO: Recover Figure 1 - Post-surgical outcomes by patient
-# Load data (already loaded above)
-# Create scatter plot with:
-#   - Different markers for each doctor (circles vs triangles)
-#   - Colorblind-friendly colors
-#   - Mean lines and annotations
-#   - Professional styling
+import matplotlib.pyplot as plt
 
-# Hint: Use matplotlib object-oriented style (fig, ax = plt.subplots())
-# Colors: Doc Dreamy = '#4E79A7' (blue), Doc Duck = '#E15759' (coral/red-orange)
+# Colors and markers for each doctor
+doctor_colors = {
+    "Doc Dreamy": "#4E79A7",   # blue
+    "Doc Duck": "#E15759"      # coral/red-orange
+}
+doctor_markers = {
+    "Doc Dreamy": "o",
+    "Doc Duck": "^"
+}
+mean_shapes = {
+    "Doc Dreamy": "\u25CB",  # Unicode white circle ○
+    "Doc Duck": "\u25B3"     # Unicode white triangle △
+}
 
+fig, ax = plt.subplots(figsize=(10, 5))
+
+# Scatter points for each doctor
+for doctor in patients_df['doctor_name'].unique():
+    df = patients_df[patients_df['doctor_name'] == doctor]
+    ax.scatter(
+        df['patient'],
+        df['post_surgical_score'],
+        label=f"{doctor}",
+        color=doctor_colors[doctor],
+        marker=doctor_markers[doctor],
+        edgecolor='black',
+        linewidth=0.6,
+        s=60,
+        alpha=0.8
+    )
+
+    # Mean outcome line
+    mean = df['post_surgical_score'].mean()
+    ax.axhline(
+        mean,
+        color=doctor_colors[doctor],
+        linestyle='--',
+        linewidth=1.5,
+        alpha=0.8
+    )
+
+    # Annotation showing mean value with shape symbol
+    ax.text(
+        patients_df['patient'].max() + 2,       # x - just past right edge
+        mean,
+        f"{mean_shapes[doctor]}  Mean = {mean:.2f}",
+        va='center',
+        color=doctor_colors[doctor],
+        fontsize=12,
+        fontweight="bold"
+    )
+
+# Styling and axis setup
+ax.set_xlabel("Patient Number", fontsize=13)
+ax.set_ylabel("Post-Surgical Symptom Score (Lower is Better)", fontsize=13)
+ax.set_title("Post-Surgical Symptom Score by Patient and Doctor", fontsize=15, fontweight='bold', pad=12)
+ax.grid(True, alpha=0.35)
+ax.legend(title="Doctor", fontsize=11, title_fontsize=12)
+plt.tight_layout()
+plt.show()
 ```
 
 ## R
@@ -187,6 +238,10 @@ Let's use data to figure out which surgeon performs better. @fig-plot-outcomes s
 
 ```
 :::
+
+
+
+
 
 ## The Hidden Confounder: Patient Severity Explains It All
 
@@ -328,12 +383,56 @@ head(patients_randomized_df)
 #| fig-cap: "Post-Surgical Symptom Score (lower is better) for randomized patients."
 #| echo: true
 
-# TODO: Recover Figure 2 - Randomized assignment outcomes
-# Load randomized data (already loaded above)
-# Create scatter plot similar to Figure 1
-# Use same styling and color scheme
-# Title: "Post-Surgical Symptom Score (Randomized Assignment)"
+import matplotlib.pyplot as plt
 
+# Load randomized data
+random_df = pd.read_csv('patients_data_randomized.csv')
+
+# Doctor info for styling
+doctor_colors = {"Doc Dreamy": "#4E79A7", "Doc Duck": "#E15759"}
+doctor_shapes = {"Doc Dreamy": "o", "Doc Duck": "^"}
+mean_shapes = {"Doc Dreamy": "\u25CB", "Doc Duck": "\u25B3"}  # ○/△
+
+fig, ax = plt.subplots(figsize=(10.5, 6.2))
+
+for doctor in ["Doc Dreamy", "Doc Duck"]:
+    df = random_df[random_df["doctor_name"] == doctor]
+    ax.scatter(
+        df["patient"], df["post_surgical_score"],
+        label=doctor,
+        c=doctor_colors[doctor],
+        marker=doctor_shapes[doctor],
+        edgecolor='black',
+        linewidth=0.6,
+        s=60,
+        alpha=0.85
+    )
+
+    mean = df["post_surgical_score"].mean()
+    ax.axhline(
+        mean,
+        color=doctor_colors[doctor],
+        linestyle="--",
+        linewidth=1.6,
+        alpha=0.8
+    )
+    ax.text(
+        random_df["patient"].max() + 2,
+        mean,
+        f"{mean_shapes[doctor]}  Mean = {mean:.2f}",
+        va="center",
+        color=doctor_colors[doctor],
+        fontsize=12,
+        fontweight="bold"
+    )
+
+ax.set_xlabel("Patient Number", fontsize=13)
+ax.set_ylabel("Post-Surgical Symptom Score (Lower is Better)", fontsize=13)
+ax.set_title("Post-Surgical Symptom Score by Patient and Doctor\n(Randomized Assignment)", fontsize=15, fontweight="bold", pad=12)
+ax.grid(True, alpha=0.34)
+ax.legend(title="Doctor", fontsize=11, title_fontsize=12)
+plt.tight_layout()
+plt.show()
 ```
 
 ## R
@@ -343,11 +442,59 @@ head(patients_randomized_df)
 #| fig-cap: "Post-Surgical Symptom Score (lower is better) for randomized patients."
 #| echo: true
 
-# TODO: Recover Figure 2 - Randomized assignment outcomes
-# Load randomized data (already loaded above)
-# Create scatter plot similar to Figure 1
-# Use same styling and color scheme
+# Install ggplot2 if not available
+if (!require("ggplot2", quietly = TRUE)) {
+  install.packages("ggplot2", repos = "https://cran.rstudio.com/")
+  library(ggplot2)
+}
 
+# Assuming patients_randomized_df already loaded
+patients_randomized_df$doctor_name <- factor(
+  patients_randomized_df$doctor_name,
+  levels = c("Doc Dreamy", "Doc Duck")
+)
+
+# Set color and shape
+doctor_colors <- c("Doc Dreamy" = "#4E79A7", "Doc Duck" = "#E15759")
+doctor_shapes <- c("Doc Dreamy" = 16, "Doc Duck" = 17) # 16 = filled circle, 17 = filled triangle
+
+# Calculate means
+means <- aggregate(post_surgical_score ~ doctor_name, patients_randomized_df, mean)
+mean_labels <- c("Doc Dreamy" = "\u25CB", "Doc Duck" = "\u25B3") # ○ and △
+
+ggplot(patients_randomized_df, aes(x = patient, y = post_surgical_score, color = doctor_name, shape = doctor_name)) +
+  geom_point(size = 3.1, alpha = 0.85, stroke = 0.6) +
+  geom_hline(data = means,
+             aes(yintercept = post_surgical_score, color = doctor_name),
+             linetype = "dashed", linewidth = 1.05, alpha = 0.85) +
+  geom_text(
+    data = means,
+    aes(
+      x = max(patients_randomized_df$patient) + 2,
+      y = post_surgical_score,
+      label = paste0(mean_labels[doctor_name], "  Mean = ", sprintf("%.2f", post_surgical_score)),
+      color = doctor_name
+    ),
+    size = 4.3,
+    fontface = "bold",
+    vjust = 0.5,
+    hjust = 0
+  ) +
+  scale_color_manual(values = doctor_colors, name = "Doctor") +
+  scale_shape_manual(values = doctor_shapes, name = "Doctor") +
+  labs(
+    x = "Patient Number",
+    y = "Post-Surgical Symptom Score (Lower is Better)",
+    title = "Post-Surgical Symptom Score by Patient and Doctor\n(Randomized Assignment)"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "right",
+    plot.title = element_text(face = "bold", size = 15, hjust = 0.5, margin = margin(b = 9)),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 11),
+    axis.title = element_text(size = 13)
+  )
 ```
 :::
 
@@ -376,18 +523,64 @@ The key to handling a common cause confounder is to stratify by the common cause
 #| fig-cap: "Post-Surgical Symptom Score (lower is better) by Patient and Severity"
 #| echo: true
 
-# TODO: Recover Figure 3 - Outcomes by patient severity (stratification)
-# Load observational data (already loaded above)
-# Create scatter plot with:
-#   - X-axis: Initial Patient Severity
-#   - Y-axis: Post-Surgical Symptom Score
-#   - Same color/marker scheme as previous figures
-#   - Mean lines and annotations
-#   - Shaded region from -1 to 1 on x-axis (use ax.axvspan or similar)
-#   - Professional styling
+import matplotlib.pyplot as plt
 
-# Hint: Use axvspan(-1, 1, alpha=0.15, color='gray', zorder=0) for the overlay
+# Define color and marker schemes (as in Figures 1 & 2)
+doctor_colors = {'Doc Dreamy': '#4E79A7', 'Doc Duck': '#E15759'}
+doctor_markers = {'Doc Dreamy': 'o', 'Doc Duck': '^'}
+mean_shapes = {'Doc Dreamy': '\u25CB', 'Doc Duck': '\u25B3'}  # ○, △
 
+fig, ax = plt.subplots(figsize=(10, 5))
+
+# Shaded vertical region for severity between -1 and 1
+ax.axvspan(-1, 1, alpha=0.15, color='gray', zorder=0)
+
+# Scatter points for each doctor
+for doctor in patients_df['doctor_name'].unique():
+    df = patients_df[patients_df['doctor_name'] == doctor]
+    ax.scatter(
+        df['severity'],
+        df['post_surgical_score'],
+        label=f"{doctor}",
+        color=doctor_colors[doctor],
+        marker=doctor_markers[doctor],
+        edgecolor='black',
+        linewidth=0.6,
+        s=60,
+        alpha=0.85,
+        zorder=2
+    )
+    # Mean horizontal line for each doctor
+    mean = df['post_surgical_score'].mean()
+    ax.axhline(
+        mean,
+        color=doctor_colors[doctor],
+        linestyle='--',
+        linewidth=1.5,
+        alpha=0.85,
+        zorder=1
+    )
+    # Annotation showing mean value (position at x=max(severity)+0.14 for each doctor)
+    xpos = 1.07 * df['severity'].max() if doctor == 'Doc Duck' else 1.07 * df['severity'].min()
+    ax.text(
+        xpos,
+        mean,
+        f"{mean_shapes[doctor]}  Mean = {mean:.2f}",
+        va='center',
+        color=doctor_colors[doctor],
+        fontsize=12,
+        fontweight="bold",
+        zorder=5
+    )
+
+# Styling and axis setup
+ax.set_xlabel("Initial Patient Severity", fontsize=13)
+ax.set_ylabel("Post-Surgical Symptom Score (Lower is Better)", fontsize=13)
+ax.set_title("Post-Surgical Symptom Score by Patient Severity", fontsize=15, fontweight='bold', pad=12)
+ax.grid(True, alpha=0.35)
+ax.legend(title="Doctor", fontsize=11, title_fontsize=12)
+plt.tight_layout()
+plt.show()
 ```
 
 ## R
@@ -397,18 +590,53 @@ The key to handling a common cause confounder is to stratify by the common cause
 #| fig-cap: "Post-Surgical Symptom Score (lower is better) by Patient and Severity"
 #| echo: true
 
-# TODO: Recover Figure 3 - Outcomes by patient severity (stratification)
-# Load observational data (already loaded above)
-# Create scatter plot with:
-#   - X-axis: Initial Patient Severity
-#   - Y-axis: Post-Surgical Symptom Score
-#   - Same color/marker scheme as previous figures
-#   - Mean lines and annotations
-#   - Shaded region from -1 to 1 on x-axis
-#   - Professional styling
+# Install ggplot2 if not available
+if (!require("ggplot2", quietly = TRUE)) {
+  install.packages("ggplot2", repos = "https://cran.rstudio.com/")
+  library(ggplot2)
+}
 
+# Color/shape scheme
+doctor_colors <- c("Doc Dreamy" = "#4E79A7", "Doc Duck" = "#E15759")
+doctor_shapes <- c("Doc Dreamy" = 16, "Doc Duck" = 17)  # 16: filled circle, 17: triangle
+
+p <- ggplot(patients_df, aes(x = severity, y = post_surgical_score, color = doctor_name, shape = doctor_name)) +
+  geom_rect(aes(xmin = -1, xmax = 1, ymin = -Inf, ymax = Inf),
+            fill = "grey70", alpha = 0.13, inherit.aes = FALSE) +
+  geom_point(size = 2.7, alpha = 0.85, stroke = 0.6) +
+  stat_summary(fun = mean, geom = "hline", aes(yintercept = ..y.., color=doctor_name), linetype = "dashed", linewidth = 1.1, alpha = 0.85) +
+  # Annotate means
+  geom_text(
+    data = aggregate(post_surgical_score ~ doctor_name, data=patients_df, mean),
+    aes(
+      x = ifelse(doctor_name == "Doc Duck", max(patients_df$severity) * 1.07, min(patients_df$severity) * 1.07),
+      y = post_surgical_score,
+      label = paste0(ifelse(doctor_name=="Doc Dreamy","\u25CB", "\u25B3"), "  Mean = ", sprintf("%.2f", post_surgical_score))
+    ),
+    color = c("#4E79A7", "#E15759"),
+    fontface = "bold",
+    size = 5,
+    vjust = 0.5,
+    hjust = 0
+  ) +
+  scale_color_manual(values=doctor_colors, name="Doctor") +
+  scale_shape_manual(values=doctor_shapes, name="Doctor") +
+  labs(
+    x = "Initial Patient Severity",
+    y = "Post-Surgical Symptom Score (Lower is Better)",
+    title = "Post-Surgical Symptom Score by Patient Severity"
+  ) +
+  theme_minimal(base_size=13) +
+  theme(
+    plot.title = element_text(face="bold", size=15, margin=margin(0,0,10,0)),
+    axis.title = element_text(size=13),
+    legend.title = element_text(size=12),
+    legend.text = element_text(size=11),
+    panel.grid.minor = element_blank()
+  )
+
+print(p)
 ```
-:::
 
 Looking at @fig-plot-outcomes-severity, the value of stratifying by severity is visually most obvious with initial patient severity scores between -1 and 1 (highlighted in the overlay). We chose this region because it shows substantial overlap between the two surgeons—both surgeons have considerable data within this range, making it an ideal region for comparing their performance. Outside of this range, there is less data available for making direct comparisons: Doc Duck sees more of the higher-severity patients (severity > 1), while Doc Dreamy sees more of the lower-severity patients (severity < -1).
 

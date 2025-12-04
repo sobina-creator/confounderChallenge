@@ -1,0 +1,5 @@
+Installing packages to: C:\Users\DanamePC/Documents/R/win-library/4.5 
+Library paths: C:/Users/DanamePC/Documents/R/win-library/4.5
+C:/Program Files/R/R-4.5.2/library 
+
+Installing knitr...
